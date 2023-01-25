@@ -21,7 +21,10 @@ class BaseConfig:
     DEBUG = False
     BCRYPT_LOG_ROUNDS = 13
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
+    # SESSION_COOKIE_HTTPONLY=True,
+    # REMEMBER_COOKIE_HTTPONLY=True,
+    # SESSION_COOKIE_SAMESITE="Strict",
+    # WTF_CSRF_CHECK_DEFAULT=False,
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration."""
@@ -45,7 +48,7 @@ class TestingConfig(BaseConfig):
 
 class ProductionConfig(BaseConfig):
     """Production configuration."""
-
-    SECRET_KEY = "my_precious"
+    
+    SECRET_KEY = secret_key
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = postgres_connection
