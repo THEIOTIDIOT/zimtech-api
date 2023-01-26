@@ -2,7 +2,7 @@ from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 
 from project.server import bcrypt, db, csrf
-from project.server.models import WebAppUser, WebAppUserSession, BlacklistToken
+from project.server.models import WebAppUser, WebAppUserSession, WebAppUserCSRFSession, BlacklistToken
 
 auth_blueprint = Blueprint("auth", __name__)
 
@@ -28,6 +28,11 @@ class RegisterAPI(MethodView):
                 db.session.add(user)
                 db.session.commit()
                 
+                # create csrf token session for the user
+                csrf_user_session = WebAppUserCSRFSession(user.email, 15)
+                db.session.add(csrf_user_session)
+                db.session.commit()
+                
                 # create session for the user
                 user_session = WebAppUserSession(user.email, 15)
                 db.session.add(user_session)
@@ -36,9 +41,12 @@ class RegisterAPI(MethodView):
                 responseObject = {
                     "status": "success",
                     "message": "Successfully registered.",
-                    "csrf_token": user_session.csrf_token,
+                    "csrf_token": csrf_user_session.csrf_token,
                 }
-                return make_response(jsonify(responseObject)), 201
+                
+                response = make_response(jsonify(responseObject))
+                response.set_cookie("user_session", user_session.session_token)
+                return response, 201
             except Exception as e:
                 responseObject = {
                     "status": "fail",
@@ -68,27 +76,35 @@ class LoginAPI(MethodView):
             if user and bcrypt.check_password_hash(
                 user.password, post_data.get("password")
             ):
-                user_session = None
+                user_csrf_session = None
                 # Can't have two active sessions
-                if not WebAppUserSession.is_session_active(email):
-                    user_session = WebAppUserSession(email, 15)
+                if not WebAppUserCSRFSession.is_session_active(email):
+                    user_csrf_session = WebAppUserCSRFSession(email, 15)
                 else:
-                    user_session = WebAppUserSession.get_active_user_session(email)
-                    user_session.csrf_token_disabled = True
+                    user_csrf_session = WebAppUserCSRFSession.get_active_user_session(email)
+                    user_csrf_session.csrf_token_disabled = True
                     db.session.commit()
-                    user_session = WebAppUserSession(email, 15)
-                    db.session.add(user_session)
+                    user_csrf_session = WebAppUserCSRFSession(email, 15)
+                    db.session.add(user_csrf_session)
                     db.session.commit()
+                    
+                # create session for the user
+                user_session = WebAppUserSession(user.email, 15)
+                db.session.add(user_session)
+                db.session.commit() 
 
                 # json response
                 responseObject = {
                     "status": "success",
                     "message": "Successfully logged in.",
-                    "csrf_token": user_session.csrf_token,
+                    "csrf_token": user_csrf_session.csrf_token,
                 }
-                return make_response(jsonify(responseObject)), 200
+
+                response = make_response(jsonify(responseObject))
+                response.set_cookie("user_session", user_session.session_token)
+                return response, 200
             else:
-                responseObject = {"status": "fail", "message": "User does not exist."}
+                responseObject = {"status": "fail", "message": "Unable to login."}
                 return make_response(jsonify(responseObject)), 404
         except Exception as e:
             print(e)

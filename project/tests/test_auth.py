@@ -2,7 +2,7 @@ import unittest
 
 from project.server import db
 from project.tests.base import BaseTestCase
-from project.server.models import WebAppUser, WebAppUserSession, BlacklistToken
+from project.server.models import WebAppUser, WebAppUserSession, WebAppUserCSRFSession, BlacklistToken
 import json
 import time
 import sqlalchemy as sa
@@ -30,7 +30,7 @@ class TestAuthBlueprint(BaseTestCase):
             email="ben@gmail.com"
             response = register_user(self, email, "123456", "ben")
             data = json.loads(response.data)
-            user_session = WebAppUserSession.get_active_user_session(email)
+            user_session = WebAppUserCSRFSession.get_active_user_session(email)
             
             self.assertTrue(data["csrf_token"] == user_session.csrf_token)
             self.assertTrue(data["status"] == "success")
@@ -62,41 +62,39 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(data["csrf_token"] != csrf_token)
             self.assertEqual(response.status_code, 200)
 
-    # def test_non_registered_user_login(self):
-    #     """Test for login of non-registered user"""
-    #     with self.client:
-    #         response = self.client.post(
-    #             "/auth/login",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         data = json.loads(response.data)
-    #         self.assertTrue(data["status"] == "fail")
-    #         self.assertTrue(data["message"] == "User does not exist.")
-    #         self.assertTrue(response.content_type == "application/json")
-    #         self.assertEqual(response.status_code, 404)
+    def test_non_registered_user_login(self):
+        """Test for login of non-registered user"""
+        with self.client:
+            response = self.client.post(
+                "/auth/login",
+                data=json.dumps(dict(email="joe@gmail.com", password="123456")),
+                content_type="application/json",
+            )
+            data = json.loads(response.data)
+            self.assertTrue(data["status"] == "fail")
+            self.assertTrue(data["message"] == "Unable to login.")
+            self.assertTrue(response.content_type == "application/json")
+            self.assertEqual(response.status_code, 404)
 
-    # def test_user_status(self):
-    #     """Test for user status"""
-    #     with self.client:
-    #         resp_register = self.client.post(
-    #             "/auth/register",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         response = self.client.get(
-    #             "/auth/status",
-    #             headers=dict(
-    #                 Authorization="Bearer "
-    #                 + json.loads(resp_register.data)["auth_token"]
-    #             ),
-    #         )
-    #         data = json.loads(response.data)
-    #         self.assertTrue(data["status"] == "success")
-    #         self.assertTrue(data["data"] is not None)
-    #         self.assertTrue(data["data"]["email"] == "joe@gmail.com")
-    #         self.assertTrue(data["data"]["admin"] == "true" or "false")
-    #         self.assertEqual(response.status_code, 200)
+    def test_user_status(self):
+        """Test for user status"""
+        with self.client:
+            # user registration
+            email="ben@gmail.com"
+            resp_register = register_user(self, email, "123456", "ben")
+            response = self.client.get(
+                "/auth/status",
+                headers=dict(
+                    Authorization="Bearer "
+                    + json.loads(resp_register.data)["auth_token"]
+                ),
+            )
+            data = json.loads(response.data)
+            self.assertTrue(data["status"] == "success")
+            self.assertTrue(data["data"] is not None)
+            self.assertTrue(data["data"]["email"] == "joe@gmail.com")
+            self.assertTrue(data["data"]["admin"] == "true" or "false")
+            self.assertEqual(response.status_code, 200)
 
     # def test_valid_logout(self):
     #     """Test for logout before token expires"""
