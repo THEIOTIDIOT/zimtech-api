@@ -30,9 +30,9 @@ class TestAuthBlueprint(BaseTestCase):
             email = "ben@gmail.com"
             response = register_user(self, email, "123456", "ben")
             data = json.loads(response.data)
-            user_session = WebAppUserCSRFSession.get_active_user_csrf_session(email)
-
-            self.assertTrue(data["csrf_token"] == user_session.csrf_token)
+            user_session_csrf = WebAppUserCSRFSession.get_active_user_csrf_session(email)
+            self.assertTrue(data["csrf_token"] != get_user_session_cookie(self))
+            self.assertTrue(data["csrf_token"] == user_session_csrf.csrf_token)
             self.assertTrue(data["status"] == "success")
             self.assertTrue(response.content_type == "application/json")
             self.assertEqual(response.status_code, 201)

@@ -48,7 +48,7 @@ class WebAppUserSession(db.Model):
         now = datetime.datetime.now()
         cipher = AESCipher(app.config.get("SECRET_KEY"))
         self.session_start_datetime = now
-        session_token = cipher.encrypt(f"{user.username}{now}")
+        session_token = cipher.encrypt(f"{user.email}{now}")
         self.session_token = session_token
         self.session_token_expiration_datetime = now + datetime.timedelta(
             minutes=session_length_mins
@@ -104,7 +104,7 @@ class WebAppUserCSRFSession(db.Model):
             minutes=session_length_mins
         )
         cipher = AESCipher(app.config.get("SECRET_KEY"))
-        csrf_token = cipher.encrypt(f"{user.id}{now}")
+        csrf_token = cipher.encrypt(f"{user.email}{now}")
         self.csrf_token = csrf_token
         self.session_start_datetime = now
         self.csrf_token_disabled = False
