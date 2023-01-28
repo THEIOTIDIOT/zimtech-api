@@ -28,7 +28,6 @@ bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
 migrate = Migrate(app, db)
-csrf = CSRFProtect(app)
 
 from project.server.auth.views import auth_blueprint
 app.register_blueprint(auth_blueprint)

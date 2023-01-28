@@ -1,10 +1,15 @@
 from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 
-from project.server import bcrypt, db, csrf
-from project.server.models import WebAppUser, WebAppUserSession, WebAppUserCSRFSession, BlacklistToken
+from project.server import bcrypt, db
+from project.server.models import (
+    WebAppUser,
+    WebAppUserSession,
+    WebAppUserCSRFSession,
+)
 
 auth_blueprint = Blueprint("auth", __name__)
+
 
 class RegisterAPI(MethodView):
     """
@@ -20,30 +25,30 @@ class RegisterAPI(MethodView):
             try:
                 user = WebAppUser(
                     username=post_data.get("username"),
-                    email=post_data.get("email"), 
+                    email=post_data.get("email"),
                     password=post_data.get("password"),
                 )
 
                 # insert the user
                 db.session.add(user)
                 db.session.commit()
-                
+
                 # create csrf token session for the user
                 csrf_user_session = WebAppUserCSRFSession(user.email, 15)
                 db.session.add(csrf_user_session)
                 db.session.commit()
-                
+
                 # create session for the user
-                user_session = WebAppUserSession(user.email, 15)
+                user_session = WebAppUserSession(user.email, 60)
                 db.session.add(user_session)
                 db.session.commit()
-                
+
                 responseObject = {
                     "status": "success",
                     "message": "Successfully registered.",
                     "csrf_token": csrf_user_session.csrf_token,
                 }
-                
+
                 response = make_response(jsonify(responseObject))
                 response.set_cookie("user_session", user_session.session_token)
                 return response, 201
@@ -81,23 +86,25 @@ class LoginAPI(MethodView):
                 if not WebAppUserCSRFSession.is_session_active(email):
                     user_csrf_session = WebAppUserCSRFSession(email, 15)
                 else:
-                    user_csrf_session = WebAppUserCSRFSession.get_active_user_session(email)
+                    user_csrf_session = (
+                        WebAppUserCSRFSession.get_active_user_csrf_session(email)
+                    )
                     user_csrf_session.csrf_token_disabled = True
                     db.session.commit()
                     user_csrf_session = WebAppUserCSRFSession(email, 15)
                     db.session.add(user_csrf_session)
                     db.session.commit()
-                    
+
                 # create session for the user
                 user_session = WebAppUserSession(user.email, 15)
                 db.session.add(user_session)
-                db.session.commit() 
+                db.session.commit()
 
                 # json response
                 responseObject = {
                     "status": "success",
                     "message": "Successfully logged in.",
-                    "csrf_token": user_csrf_session.csrf_token
+                    "csrf_token": user_csrf_session.csrf_token,
                 }
 
                 response = make_response(jsonify(responseObject))
@@ -149,20 +156,14 @@ class LogoutAPI(MethodView):
     """
 
     def post(self):
-        # get auth token
-        auth_header = request.headers.get("Authorization")
-        if auth_header:
-            auth_token = auth_header.split(" ")[1]
-        else:
-            auth_token = ""
-        if auth_token:
-            resp = WebAppUser.decode_auth_token(auth_token)
-            if not isinstance(resp, str):
-                # mark the token as blacklisted
-                blacklist_token = BlacklistToken(token=auth_token)
+        # get the auth token
+        session_token = request.cookies.get("user_session")
+        if session_token:
+            user_session = WebAppUserSession.get_active_user_session(session_token)
+            if user_session:
                 try:
-                    # insert the token
-                    db.session.add(blacklist_token)
+                    # disable session token
+                    user_session.session_token_disabled = True
                     db.session.commit()
                     responseObject = {
                         "status": "success",
@@ -173,20 +174,20 @@ class LogoutAPI(MethodView):
                     responseObject = {"status": "fail", "message": e}
                     return make_response(jsonify(responseObject)), 200
             else:
-                responseObject = {"status": "fail", "message": resp}
+                responseObject = {"status": "fail", "message": "No user logged in."}
                 return make_response(jsonify(responseObject)), 401
         else:
             responseObject = {
                 "status": "fail",
-                "message": "Provide a valid auth token.",
+                "message": "No session cookie found.",
             }
             return make_response(jsonify(responseObject)), 403
 
 
 # define the API resources
 
-registration_view = csrf.exempt(RegisterAPI.as_view("register_api"))
-login_view = csrf.exempt(LoginAPI.as_view("login_api"))
+registration_view = RegisterAPI.as_view("register_api")
+login_view = LoginAPI.as_view("login_api")
 user_view = UserAPI.as_view("user_api")
 logout_view = LogoutAPI.as_view("logout_api")
 
