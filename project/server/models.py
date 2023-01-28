@@ -3,13 +3,11 @@ import time
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from project.server import app, db, bcrypt
-from flask_login import UserMixin
-from flask_wtf.csrf import generate_csrf
 import sqlalchemy as sa
 from project.util import AESCipher
 
 
-class WebAppUser(db.Model, UserMixin):
+class WebAppUser(db.Model):
     """User Model for storing user related details"""
 
     __tablename__ = "WEB_APP_USER"
