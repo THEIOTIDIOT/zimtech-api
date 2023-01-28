@@ -81,18 +81,14 @@ class TestAuthBlueprint(BaseTestCase):
         with self.client:
             # user registration
             email="ben@gmail.com"
-            resp_register = register_user(self, email, "123456", "ben")
-            response = self.client.get(
-                "/auth/status",
-                headers=dict(
-                    Authorization="Bearer "
-                    + json.loads(resp_register.data)["auth_token"]
-                ),
-            )
+            register_user(self, email, "123456", "ben")
+            cookie = [cookie for cookie in self.client.cookie_jar if cookie.name == "user_session"][0].value
+            response = self.client.get("/auth/status")
             data = json.loads(response.data)
+            self.assertTrue(cookie is not None)
             self.assertTrue(data["status"] == "success")
             self.assertTrue(data["data"] is not None)
-            self.assertTrue(data["data"]["email"] == "joe@gmail.com")
+            self.assertTrue(data["data"]["email"] == "ben@gmail.com")
             self.assertTrue(data["data"]["admin"] == "true" or "false")
             self.assertEqual(response.status_code, 200)
 

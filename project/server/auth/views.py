@@ -97,7 +97,7 @@ class LoginAPI(MethodView):
                 responseObject = {
                     "status": "success",
                     "message": "Successfully logged in.",
-                    "csrf_token": user_csrf_session.csrf_token,
+                    "csrf_token": user_csrf_session.csrf_token
                 }
 
                 response = make_response(jsonify(responseObject))
@@ -119,22 +119,10 @@ class UserAPI(MethodView):
 
     def get(self):
         # get the auth token
-        auth_header = request.headers.get("Authorization")
-        if auth_header:
-            try:
-                auth_token = auth_header.split(" ")[1]
-            except IndexError:
-                responseObject = {
-                    "status": "fail",
-                    "message": "Bearer token malformed.",
-                }
-                return make_response(jsonify(responseObject)), 401
-        else:
-            auth_token = ""
+        auth_token = request.cookies.get("user_session")
         if auth_token:
-            resp = WebAppUser.decode_auth_token(auth_token)
-            if not isinstance(resp, str):
-                user = WebAppUser.query.filter_by(id=resp).first()
+            user = WebAppUserSession.get_user(auth_token)
+            if user != None:
                 responseObject = {
                     "status": "success",
                     "data": {
@@ -145,12 +133,12 @@ class UserAPI(MethodView):
                     },
                 }
                 return make_response(jsonify(responseObject)), 200
-            responseObject = {"status": "fail", "message": resp}
+            responseObject = {"status": "fail", "message": "No active user session."}
             return make_response(jsonify(responseObject)), 401
         else:
             responseObject = {
                 "status": "fail",
-                "message": "Provide a valid auth token.",
+                "message": "Provide a valid session token.",
             }
             return make_response(jsonify(responseObject)), 401
 

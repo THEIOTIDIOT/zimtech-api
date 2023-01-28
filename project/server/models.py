@@ -58,12 +58,10 @@ class WebAppUserSession(db.Model):
         user_session = WebAppUserSession.query.where(
             WebAppUserSession.session_token==session_token
         ).first()
-        if user_session.session_token_expiration_datetime < datetime.datetime.now():
+        if user_session.session_token_expiration_datetime > datetime.datetime.now():
             return WebAppUser.query.where(WebAppUser.id==user_session.user_id).first()
         else:
             return None
-
-
 class WebAppUserCSRFSession(db.Model):
     """Web App User CSRF Session Model for storing user csrf token sessions"""
 
