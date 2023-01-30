@@ -50,7 +50,13 @@ class RegisterAPI(MethodView):
                 }
 
                 response = make_response(jsonify(responseObject))
-                response.set_cookie("user_session", user_session.session_token)
+                response.set_cookie(
+                    "user_session", 
+                    value=user_session.session_token, 
+                    domain="127.0.0.1",
+                    httponly=True,
+                    secure=True
+                )
                 return response, 201
             except Exception as e:
                 responseObject = {
@@ -104,11 +110,19 @@ class LoginAPI(MethodView):
                 responseObject = {
                     "status": "success",
                     "message": "Successfully logged in.",
-                    "csrf_token": user_csrf_session.csrf_token,
+                    "csrf_token": user_csrf_session.csrf_token.decode(),
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username,
                 }
-
                 response = make_response(jsonify(responseObject))
-                response.set_cookie("user_session", user_session.session_token)
+                response.set_cookie(
+                    "user_session", 
+                    value=user_session.session_token, 
+                    domain="127.0.0.1",
+                    httponly=True,
+                    secure=True
+                )
                 return response, 200
             else:
                 responseObject = {"status": "fail", "message": "Unable to login."}
@@ -127,8 +141,9 @@ class UserAPI(MethodView):
     def get(self):
         # get the auth token
         auth_token = request.cookies.get("user_session")
+        print(request.cookies)
         if auth_token:
-            user = WebAppUserSession.get_user(auth_token)
+            user = WebAppUserSession.get_user(auth_token.value)
             if user != None:
                 responseObject = {
                     "status": "success",
