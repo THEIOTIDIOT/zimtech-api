@@ -1,9 +1,8 @@
 import unittest
-
 from flask_testing import TestCase
-from project.server import db
-from project.server.models import WebAppUser
-from project.tests.base import BaseTestCase
+from server import db
+from server.models import WebAppUser
+from base import BaseTestCase
 
 
 class TestUserModel(BaseTestCase):

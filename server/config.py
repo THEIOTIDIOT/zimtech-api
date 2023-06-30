@@ -28,9 +28,10 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration."""
-
-    SECRET_KEY = secret_key
-    DEBUG = True
+    def __init__(self):
+        super().__init__()
+    # SECRET_KEY = secret_key
+    # DEBUG = True
     BCRYPT_LOG_ROUNDS = 4
     SQLALCHEMY_DATABASE_URI = postgres_connection
 
@@ -43,7 +44,7 @@ class TestingConfig(BaseConfig):
     TESTING = True
     BCRYPT_LOG_ROUNDS = 4
     SQLALCHEMY_DATABASE_URI = postgres_connection + "_test"
-    PRESERVE_CONTEXT_ON_EXCEPTION = False
+    PRESERVE_CONTEXT_ON_EXCEPTION = True
 
 
 class ProductionConfig(BaseConfig):

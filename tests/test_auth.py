@@ -1,27 +1,31 @@
 import unittest
-from project.tests.base import BaseTestCase
-from project.server.models import (
+from base import BaseTestCase
+from server.models import (
     WebAppUserCSRFSession,
 )
 import json
 
 
 @staticmethod
-def register_user(self, email, password, username):
+def register_user(self: BaseTestCase, email, password, username):
+    payload = dict(username=username, email=email, password=password)
     return self.client.post(
         "/auth/register",
-        data=json.dumps(dict(username=username, email=email, password=password)),
+        data=json.dumps(payload),
         content_type="application/json",
     )
 
 @staticmethod
-def get_user_session_cookie(self):
-    cookie = [
+def get_user_session_cookie(self: BaseTestCase):
+    cookie_jar = [
                 cookie
                 for cookie in self.client.cookie_jar
                 if cookie.name == "user_session"
-            ][0].value
-    return cookie
+            ]
+    if len(cookie_jar):
+        return cookie_jar[0].value
+    else:
+        return None
 
 class TestAuthBlueprint(BaseTestCase):
     def test_registration(self):

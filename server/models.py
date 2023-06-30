@@ -1,7 +1,7 @@
 import datetime
-from project.server import app, db, bcrypt
+from server import app, db, bcrypt
 import sqlalchemy as sa
-from project.util import AESCipher
+from server.utils.utils import AESCipher
 
 
 class WebAppUser(db.Model):
@@ -48,7 +48,7 @@ class WebAppUserSession(db.Model):
         now = datetime.datetime.now()
         cipher = AESCipher(app.config.get("SECRET_KEY"))
         self.session_start_datetime = now
-        session_token = cipher.encrypt(f"{user.email}{now}")
+        session_token = cipher.encrypt(f"{user.email}{now}").decode()
         self.session_token = session_token
         self.session_token_expiration_datetime = now + datetime.timedelta(
             minutes=session_length_mins
@@ -104,7 +104,7 @@ class WebAppUserCSRFSession(db.Model):
             minutes=session_length_mins
         )
         cipher = AESCipher(app.config.get("SECRET_KEY"))
-        csrf_token = cipher.encrypt(f"{user.email}{now}")
+        csrf_token = cipher.encrypt(f"{user.email}{now}").decode()
         self.csrf_token = csrf_token
         self.session_start_datetime = now
         self.csrf_token_disabled = False

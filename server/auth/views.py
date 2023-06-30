@@ -1,20 +1,23 @@
 from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 
-from project.server import bcrypt, db
-from project.server.models import (
+from server import bcrypt, db
+from server.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,
 )
+from server.utils.utils import MyLogger
+import logging
 
 auth_blueprint = Blueprint("auth", __name__)
-
 
 class RegisterAPI(MethodView):
     """
     User Registration Resource
     """
+    def __init__(self):
+        self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
     def post(self):
         # get the post data
@@ -48,17 +51,19 @@ class RegisterAPI(MethodView):
                     "message": "Successfully registered.",
                     "csrf_token": csrf_user_session.csrf_token,
                 }
-
-                response = make_response(jsonify(responseObject))
+                response = jsonify(responseObject)
                 response.set_cookie(
                     "user_session", 
                     value=user_session.session_token, 
-                    domain="127.0.0.1",
                     httponly=True,
                     secure=True
                 )
+                self.logger.debug(user_session.session_token)
+                self.logger.debug(response.get_json())
                 return response, 201
             except Exception as e:
+                self.logger.Error("Uncaught exception occurred.")
+                self.logger.debug(e)
                 responseObject = {
                     "status": "fail",
                     "message": f"Some error occurred. Please try again. {e}",
@@ -110,19 +115,26 @@ class LoginAPI(MethodView):
                 responseObject = {
                     "status": "success",
                     "message": "Successfully logged in.",
-                    "csrf_token": user_csrf_session.csrf_token.decode(),
+                    "csrf_token": user_csrf_session.csrf_token,
                     "id": user.id,
                     "email": user.email,
                     "username": user.username,
                 }
                 response = make_response(jsonify(responseObject))
+                print(user_session.session_token)
                 response.set_cookie(
-                    "user_session", 
-                    value=user_session.session_token, 
+                    key="user_session", 
+                    value=user_session.session_token,
                     domain="127.0.0.1",
                     httponly=True,
-                    secure=True
+                    secure=True,
+                    samesite="Lax"
                 )
+                
+                response.access_control_allow_headers = ["*"]
+                response.access_control_expose_headers = ["Set-Cookie"]
+                response.access_control_allow_origin = 'http://127.0.0.1:5173'
+                response.access_control_allow_credentials = True
                 return response, 200
             else:
                 responseObject = {"status": "fail", "message": "Unable to login."}
@@ -141,9 +153,8 @@ class UserAPI(MethodView):
     def get(self):
         # get the auth token
         auth_token = request.cookies.get("user_session")
-        print(request.cookies)
         if auth_token:
-            user = WebAppUserSession.get_user(auth_token.value)
+            user = WebAppUserSession.get_user(auth_token)
             if user != None:
                 responseObject = {
                     "status": "success",
