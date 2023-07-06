@@ -1,14 +1,15 @@
 from flask_testing import TestCase
-from server import app, db
+from api import create_app
 from flask import Flask
+from api.model import db
 
-
+app = create_app()
 
 class BaseTestCase(TestCase):
     """ Base Tests """
 
     def create_app(self) -> Flask:
-        app.config.from_object('server.config.TestingConfig')
+        app.config.from_object('api.config.TestingConfig')
         app.testing = True
         return app
 

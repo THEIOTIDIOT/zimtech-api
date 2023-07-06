@@ -1,16 +1,15 @@
-import base64
-import hashlib
 import logging
 import logging.config
-from pathlib import Path
-from Crypto import Random
-from Crypto.Cipher import AES
 import yaml
-import os
 from pathlib import Path
+from flask import Flask
+# from flask_script import Manager
+from flask_cors import CORS
+# from flask_migrate import Migrate
+from api.views import base_blueprint
+from api.auth.views import auth_blueprint
 
 PROJECTROOT = Path(__name__).parent.resolve()
-
 
 class MyLogger(logging.Logger):
     def __init__(self, name: str) -> None:
@@ -31,6 +30,7 @@ logging.setLoggerClass(MyLogger)
 
 def config_logger_options():
     # Parse YAML config as dict and configure logging system
+    print(PROJECTROOT)
     with open(Path(PROJECTROOT, "logger_config.yml").resolve(), "r") as f:
         config = dict(yaml.safe_load(f))
         logging.config.dictConfig(config)
@@ -38,28 +38,32 @@ def config_logger_options():
 
 config_logger_options()
 
+def create_app():
+    # Initialize variables
+    app = Flask(__name__)
+    # app.config.from_object("server.config.DevelopmentConfig")
+    app.config.from_object("api.config.DevelopmentConfig")
 
-class AESCipher(object):
 
-    def __init__(self, key):
-        self.bs = AES.block_size
-        self.key = hashlib.sha256(key.encode()).digest()
+    # Extensions
+    CORS(
+        app,
+        # origins=["http://127.0.0.1:5173","http://127.0.0.1:5000", "http://127.0.0.1:5555", "http://127.0.0.1:8080"],
+        resource={
+            r"/*":{
+                "origins":["http://127.0.0.1:5173"]
+            }
+        },
+        supports_credentials=True,
+    )
 
-    def encrypt(self, raw):
-        raw = self._pad(raw)
-        iv = Random.new().read(AES.block_size)
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return base64.b64encode(iv + cipher.encrypt(raw.encode()))
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
-    def decrypt(self, enc):
-        enc = base64.b64decode(enc)
-        iv = enc[:AES.block_size]
-        cipher = AES.new(self.key, AES.MODE_CBC, iv)
-        return self._unpad(cipher.decrypt(enc[AES.block_size:])).decode('utf-8')
-
-    def _pad(self, s):
-        return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs)
-
-    @staticmethod
-    def _unpad(s):
-        return s[:-ord(s[len(s)-1:])]
+    from api.model import db, bcrypt
+    bcrypt.init_app(app)
+    # manager = Manager(app)
+    db.init_app(app)
+    # migrate = Migrate(app, db)
+    app.register_blueprint(base_blueprint)
+    app.register_blueprint(auth_blueprint)
+    return app

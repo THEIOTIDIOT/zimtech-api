@@ -1,6 +1,6 @@
 import unittest
 from base import BaseTestCase
-from server.models import (
+from api.model import (
     WebAppUserCSRFSession,
 )
 import json
@@ -15,18 +15,6 @@ def register_user(self: BaseTestCase, email, password, username):
         content_type="application/json",
     )
 
-@staticmethod
-def get_user_session_cookie(self: BaseTestCase):
-    cookie_jar = [
-                cookie
-                for cookie in self.client.cookie_jar
-                if cookie.name == "user_session"
-            ]
-    if len(cookie_jar):
-        return cookie_jar[0].value
-    else:
-        return None
-
 class TestAuthBlueprint(BaseTestCase):
     def test_registration(self):
         """Test for user registration"""
@@ -35,7 +23,7 @@ class TestAuthBlueprint(BaseTestCase):
             response = register_user(self, email, "123456", "ben")
             data = json.loads(response.data)
             user_session_csrf = WebAppUserCSRFSession.get_active_user_csrf_session(email)
-            self.assertTrue(data["csrf_token"] != get_user_session_cookie(self))
+            self.assertTrue(data["csrf_token"] != self.client.get_cookie("user_session"))
             self.assertTrue(data["csrf_token"] == user_session_csrf.csrf_token)
             self.assertTrue(data["status"] == "success")
             self.assertTrue(response.content_type == "application/json")
@@ -86,7 +74,7 @@ class TestAuthBlueprint(BaseTestCase):
             # user registration
             email = "ben@gmail.com"
             register_user(self, email, "123456", "ben")
-            cookie = get_user_session_cookie(self)
+            cookie = self.client.get_cookie("user_session")
             response = self.client.get("/auth/status")
             data = json.loads(response.data)
             self.assertTrue(cookie is not None)
@@ -108,139 +96,6 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(data["status"] == "success")
             self.assertTrue(data["message"] == "Successfully logged out.")
             self.assertEqual(response.status_code, 200)
-
-    # def test_invalid_logout(self):
-    #     """Testing logout after the token expires"""
-    #     with self.client:
-    #         # user registration
-    #         resp_register = self.client.post(
-    #             "/auth/register",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         data_register = json.loads(resp_register.data)
-    #         self.assertTrue(data_register["status"] == "success")
-    #         self.assertTrue(data_register["message"] == "Successfully registered.")
-    #         self.assertTrue(data_register["auth_token"])
-    #         self.assertTrue(resp_register.content_type == "application/json")
-    #         self.assertEqual(resp_register.status_code, 201)
-    #         # user login
-    #         resp_login = self.client.post(
-    #             "/auth/login",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         data_login = json.loads(resp_login.data)
-    #         self.assertTrue(data_login["status"] == "success")
-    #         self.assertTrue(data_login["message"] == "Successfully logged in.")
-    #         self.assertTrue(data_login["auth_token"])
-    #         self.assertTrue(resp_login.content_type == "application/json")
-    #         self.assertEqual(resp_login.status_code, 200)
-    #         # invalid token logout
-    #         time.sleep(6)
-    #         response = self.client.post(
-    #             "/auth/logout",
-    #             headers=dict(
-    #                 Authorization="Bearer " + json.loads(resp_login.data)["auth_token"]
-    #             ),
-    #         )
-    #         data = json.loads(response.data)
-    #         self.assertTrue(data["status"] == "fail")
-    #         self.assertTrue(
-    #             data["message"] == "Signature expired. Please log in again."
-    #         )
-    #         self.assertEqual(response.status_code, 401)
-
-    # def test_valid_blacklisted_token_logout(self):
-    #     """Test for logout after a valid token gets blacklisted"""
-    #     with self.client:
-    #         # user registration
-    #         resp_register = self.client.post(
-    #             "/auth/register",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         data_register = json.loads(resp_register.data)
-    #         self.assertTrue(data_register["status"] == "success")
-    #         self.assertTrue(data_register["message"] == "Successfully registered.")
-    #         self.assertTrue(data_register["auth_token"])
-    #         self.assertTrue(resp_register.content_type == "application/json")
-    #         self.assertEqual(resp_register.status_code, 201)
-    #         # user login
-    #         resp_login = self.client.post(
-    #             "/auth/login",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         data_login = json.loads(resp_login.data)
-    #         self.assertTrue(data_login["status"] == "success")
-    #         self.assertTrue(data_login["message"] == "Successfully logged in.")
-    #         self.assertTrue(data_login["auth_token"])
-    #         self.assertTrue(resp_login.content_type == "application/json")
-    #         self.assertEqual(resp_login.status_code, 200)
-    #         # blacklist a valid token
-    #         blacklist_token = BlacklistToken(
-    #             token=json.loads(resp_login.data)["auth_token"]
-    #         )
-    #         db.session.add(blacklist_token)
-    #         db.session.commit()
-    #         # blacklisted valid token logout
-    #         response = self.client.post(
-    #             "/auth/logout",
-    #             headers=dict(
-    #                 Authorization="Bearer " + json.loads(resp_login.data)["auth_token"]
-    #             ),
-    #         )
-    #         data = json.loads(response.data)
-    #         self.assertTrue(data["status"] == "fail")
-    #         self.assertTrue(
-    #             data["message"] == "Token blacklisted. Please log in again."
-    #         )
-    #         self.assertEqual(response.status_code, 401)
-
-    # def test_valid_blacklisted_token_user(self):
-    #     """Test for user status with a blacklisted valid token"""
-    #     with self.client:
-    #         resp_register = self.client.post(
-    #             "/auth/register",
-    #             data=json.dumps(dict(email="joe@gmail.com", password="123456")),
-    #             content_type="application/json",
-    #         )
-    #         # blacklist a valid token
-    #         blacklist_token = BlacklistToken(
-    #             token=json.loads(resp_register.data)["auth_token"]
-    #         )
-    #         db.session.add(blacklist_token)
-    #         db.session.commit()
-    #         response = self.client.get(
-    #             "/auth/status",
-    #             headers=dict(
-    #                 Authorization="Bearer "
-    #                 + json.loads(resp_register.data)["auth_token"]
-    #             ),
-    #         )
-    #         data = json.loads(response.data)
-    #         self.assertTrue(data["status"] == "fail")
-    #         self.assertTrue(
-    #             data["message"] == "Token blacklisted. Please log in again."
-    #         )
-    #         self.assertEqual(response.status_code, 401)
-
-    # def test_user_status_malformed_bearer_token(self):
-    #     """Test for user status with malformed bearer token"""
-    #     with self.client:
-    #         resp_register = register_user(self, "joe@gmail.com", "123456")
-    #         response = self.client.get(
-    #             "/auth/status",
-    #             headers=dict(
-    #                 Authorization="Bearer"
-    #                 + json.loads(resp_register.data.decode())["auth_token"]
-    #             ),
-    #         )
-    #         data = json.loads(response.data.decode())
-    #         self.assertTrue(data["status"] == "fail")
-    #         self.assertTrue(data["message"] == "Bearer token malformed.")
-    #         self.assertEqual(response.status_code, 401)
 
 
 if __name__ == "__main__":
