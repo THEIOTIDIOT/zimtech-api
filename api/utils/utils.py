@@ -1,6 +1,5 @@
 import base64
 import hashlib
-from pathlib import Path
 from Crypto import Random
 from Crypto.Cipher import AES
 

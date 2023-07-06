@@ -1,7 +1,7 @@
 from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 from flask_cors import cross_origin
-from api.model import (
+from api.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,

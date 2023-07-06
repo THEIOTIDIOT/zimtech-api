@@ -1,6 +1,6 @@
 import unittest
 from base import BaseTestCase
-from api.model import (
+from api.models import (
     WebAppUserCSRFSession,
 )
 import json

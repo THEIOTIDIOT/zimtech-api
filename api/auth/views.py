@@ -1,7 +1,7 @@
 from flask import current_app, Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 # from api import bcrypt, db, app
-from api.model import (
+from api.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,

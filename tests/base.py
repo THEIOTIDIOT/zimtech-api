@@ -1,7 +1,7 @@
 from flask_testing import TestCase
 from api import create_app
 from flask import Flask
-from api.model import db
+from api.models import db
 
 app = create_app()
 

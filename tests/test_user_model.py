@@ -1,6 +1,6 @@
 import unittest
 from flask_testing import TestCase
-from api.model import WebAppUser, db
+from api.models import WebAppUser, db
 from base import BaseTestCase
 
 

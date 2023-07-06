@@ -59,7 +59,7 @@ def create_app():
 
     app.config['CORS_HEADERS'] = 'Content-Type'
 
-    from api.model import db, bcrypt
+    from api.models import db, bcrypt
     bcrypt.init_app(app)
     # manager = Manager(app)
     db.init_app(app)
