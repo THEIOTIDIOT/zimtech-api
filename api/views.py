@@ -1,8 +1,7 @@
 from flask import Blueprint, request, make_response, jsonify
 from flask.views import MethodView
-
-from project.server import bcrypt, db
-from project.server.models import (
+from flask_cors import cross_origin
+from api.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,
@@ -15,7 +14,7 @@ class HomePage(MethodView):
     """
     User Registration Resource
     """
-
+    @cross_origin
     def get(self):
         pass
         

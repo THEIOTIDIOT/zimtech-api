@@ -1,20 +1,23 @@
-from flask import Blueprint, request, make_response, jsonify
+from flask import current_app, Blueprint, request, make_response, jsonify
 from flask.views import MethodView
-
-from project.server import bcrypt, db
-from project.server.models import (
+# from api import bcrypt, db, app
+from api.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,
+    db,
+    bcrypt
 )
+import logging
 
 auth_blueprint = Blueprint("auth", __name__)
-
 
 class RegisterAPI(MethodView):
     """
     User Registration Resource
     """
+    def __init__(self):
+        self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
     def post(self):
         # get the post data
@@ -48,28 +51,37 @@ class RegisterAPI(MethodView):
                     "message": "Successfully registered.",
                     "csrf_token": csrf_user_session.csrf_token,
                 }
-
-                response = make_response(jsonify(responseObject))
-                response.set_cookie("user_session", user_session.session_token)
+                response = jsonify(responseObject)
+                response.set_cookie(
+                    "user_session", 
+                    value=user_session.session_token, 
+                    httponly=True
+                )
+                self.logger.debug(user_session.session_token)
+                self.logger.debug(response.get_json())
                 return response, 201
             except Exception as e:
+                self.logger.error("Uncaught exception occurred.")
+                self.logger.debug(e)
                 responseObject = {
                     "status": "fail",
                     "message": f"Some error occurred. Please try again. {e}",
                 }
-                return make_response(jsonify(responseObject)), 401
+                return jsonify(responseObject), 401
         else:
             responseObject = {
                 "status": "fail",
                 "message": "User already exists. Please Log in.",
             }
-            return make_response(jsonify(responseObject)), 202
+            return jsonify(responseObject), 202
 
 
 class LoginAPI(MethodView):
     """
     User Login Resource
     """
+    def __init__(self):
+        self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
     def post(self):
         # get the post data
@@ -81,6 +93,7 @@ class LoginAPI(MethodView):
             if user and bcrypt.check_password_hash(
                 user.password, post_data.get("password")
             ):
+                self.logger.debug(f"username={user.username}, password={user.password}")
                 user_csrf_session = None
                 # Can't have two active sessions
                 if not WebAppUserCSRFSession.is_session_active(email):
@@ -105,18 +118,28 @@ class LoginAPI(MethodView):
                     "status": "success",
                     "message": "Successfully logged in.",
                     "csrf_token": user_csrf_session.csrf_token,
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username,
                 }
-
-                response = make_response(jsonify(responseObject))
-                response.set_cookie("user_session", user_session.session_token)
+                response = jsonify(responseObject)
+                response.set_cookie(
+                    key="user_session", 
+                    value=user_session.session_token,
+                    httponly=True,
+                    # secure=True,
+                    # domain="b.u.localhost"
+                    samesite="Lax"
+                )
+                self.logger.debug(response.get_json())
                 return response, 200
             else:
                 responseObject = {"status": "fail", "message": "Unable to login."}
-                return make_response(jsonify(responseObject)), 404
+                return jsonify(responseObject), 404
         except Exception as e:
             print(e)
             responseObject = {"status": "fail", "message": "Try again"}
-            return make_response(jsonify(responseObject)), 500
+            return jsonify(responseObject), 500
 
 
 class UserAPI(MethodView):
@@ -124,13 +147,17 @@ class UserAPI(MethodView):
     User Resource
     """
 
+    def __init__(self):
+        self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
+
     def get(self):
         # get the auth token
         auth_token = request.cookies.get("user_session")
+        self.logger.debug(f"session token is : {auth_token}")        
         if auth_token:
             user = WebAppUserSession.get_user(auth_token)
             if user != None:
-                responseObject = {
+                response = {
                     "status": "success",
                     "data": {
                         "user_id": user.id,
@@ -139,21 +166,26 @@ class UserAPI(MethodView):
                         "registered_on": user.registered_on,
                     },
                 }
-                return make_response(jsonify(responseObject)), 200
-            responseObject = {"status": "fail", "message": "No active user session."}
-            return make_response(jsonify(responseObject)), 401
+                response = jsonify(response)
+                return response, 200
+            response = {"status": "fail", "message": "No active user session."}
+            self.logger.debug("No active user session")
+            return jsonify(response), 401
         else:
-            responseObject = {
+            response = {
                 "status": "fail",
                 "message": "Provide a valid session token.",
             }
-            return make_response(jsonify(responseObject)), 401
+            self.logger.debug("Not a valid session token")
+            return jsonify(response), 401
 
 
 class LogoutAPI(MethodView):
     """
     Logout Resource
     """
+    def __init__(self):
+        self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
     def post(self):
         # get the auth token
@@ -169,19 +201,20 @@ class LogoutAPI(MethodView):
                         "status": "success",
                         "message": "Successfully logged out.",
                     }
-                    return make_response(jsonify(responseObject)), 200
+                    response = jsonify(responseObject)
+                    return response, 200
                 except Exception as e:
                     responseObject = {"status": "fail", "message": e}
-                    return make_response(jsonify(responseObject)), 200
+                    return jsonify(responseObject), 200
             else:
                 responseObject = {"status": "fail", "message": "No user logged in."}
-                return make_response(jsonify(responseObject)), 401
+                return jsonify(responseObject), 401
         else:
             responseObject = {
                 "status": "fail",
                 "message": "No session cookie found.",
             }
-            return make_response(jsonify(responseObject)), 403
+            return jsonify(responseObject), 403
 
 
 # define the API resources

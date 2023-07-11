@@ -1,8 +1,12 @@
 import datetime
-from project.server import app, db, bcrypt
 import sqlalchemy as sa
-from project.util import AESCipher
+from flask import current_app
+from api.utils.utils import AESCipher
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
+db = SQLAlchemy()
+bcrypt = Bcrypt()
 
 class WebAppUser(db.Model):
     """User Model for storing user related details"""
@@ -21,7 +25,7 @@ class WebAppUser(db.Model):
         self.username = username
         self.email = email
         self.password = bcrypt.generate_password_hash(
-            password, app.config.get("BCRYPT_LOG_ROUNDS")
+            password, current_app.config.get("BCRYPT_LOG_ROUNDS")
         ).decode()
         self.registered_on = datetime.datetime.now()
         self.admin = admin
@@ -46,9 +50,9 @@ class WebAppUserSession(db.Model):
         ).scalar_one()
         self.user_id = user.id
         now = datetime.datetime.now()
-        cipher = AESCipher(app.config.get("SECRET_KEY"))
+        cipher = AESCipher(current_app.config.get("SECRET_KEY"))
         self.session_start_datetime = now
-        session_token = cipher.encrypt(f"{user.email}{now}")
+        session_token = cipher.encrypt(f"{user.email}{now}").decode()
         self.session_token = session_token
         self.session_token_expiration_datetime = now + datetime.timedelta(
             minutes=session_length_mins
@@ -62,7 +66,7 @@ class WebAppUserSession(db.Model):
         ).first()
         if (
             user_session.session_token_expiration_datetime > datetime.datetime.now()
-            and user_session.session_token_disabled != True
+            and not user_session.session_token_disabled
         ):
             return WebAppUser.query.where(WebAppUser.id == user_session.user_id).first()
         else:
@@ -75,7 +79,7 @@ class WebAppUserSession(db.Model):
         ).first()
         if (
             user_session.session_token_expiration_datetime > datetime.datetime.now()
-            and user_session.session_token_disabled != True
+            and not user_session.session_token_disabled
         ):
             return user_session
         else:
@@ -103,8 +107,8 @@ class WebAppUserCSRFSession(db.Model):
         self.csrf_token_expiration_datetime = now + datetime.timedelta(
             minutes=session_length_mins
         )
-        cipher = AESCipher(app.config.get("SECRET_KEY"))
-        csrf_token = cipher.encrypt(f"{user.email}{now}")
+        cipher = AESCipher(current_app.config.get("SECRET_KEY"))
+        csrf_token = cipher.encrypt(f"{user.email}{now}").decode()
         self.csrf_token = csrf_token
         self.session_start_datetime = now
         self.csrf_token_disabled = False
@@ -112,7 +116,7 @@ class WebAppUserCSRFSession(db.Model):
     @staticmethod
     def is_session_active(email):
         user_session = WebAppUserCSRFSession.get_active_user_csrf_session(email)
-        if user_session != None:
+        if user_session:
             if datetime.datetime.now() > user_session.csrf_token_expiration_datetime:
                 return False
             else:

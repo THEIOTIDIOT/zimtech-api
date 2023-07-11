@@ -1,12 +1,16 @@
 from flask_testing import TestCase
-from project.server import app, db
+from api import create_app
+from flask import Flask
+from api.models import db
 
+app = create_app()
 
 class BaseTestCase(TestCase):
     """ Base Tests """
 
-    def create_app(self):
-        app.config.from_object('project.server.config.TestingConfig')
+    def create_app(self) -> Flask:
+        app.config.from_object('api.config.TestingConfig')
+        app.testing = True
         return app
 
     def setUp(self):
