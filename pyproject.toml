@@ -1,0 +1,11 @@
+[project]
+name = "blog"
+version = "0.1.0"
+description = "This is an example blog site created for educational purposes"
+dependencies = [
+    "flask",
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"

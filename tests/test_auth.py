@@ -1,6 +1,6 @@
 import unittest
 from base import BaseTestCase
-from api.models import (
+from blog.models import (
     WebAppUserCSRFSession,
 )
 import json
@@ -16,6 +16,9 @@ def register_user(self: BaseTestCase, email, password, username):
     )
 
 class TestAuthBlueprint(BaseTestCase):
+    def test_base(self):
+        self.assertTrue(True)
+        
     def test_registration(self):
         """Test for user registration"""
         with self.client:
@@ -96,6 +99,8 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(data["status"] == "success")
             self.assertTrue(data["message"] == "Successfully logged out.")
             self.assertEqual(response.status_code, 200)
+
+    # def test_create_
 
 
 if __name__ == "__main__":

@@ -1,14 +1,14 @@
 from flask import current_app, Blueprint, request, make_response, jsonify
 from flask.views import MethodView
 # from api import bcrypt, db, app
-from api.models import (
+from blog.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,
-    db,
     bcrypt
 )
 import logging
+from blog.database import db_session
 
 auth_blueprint = Blueprint("auth", __name__)
 
@@ -33,18 +33,18 @@ class RegisterAPI(MethodView):
                 )
 
                 # insert the user
-                db.session.add(user)
-                db.session.commit()
+                db_session.add(user)
+                db_session.commit()
 
                 # create csrf token session for the user
                 csrf_user_session = WebAppUserCSRFSession(user.email, 15)
-                db.session.add(csrf_user_session)
-                db.session.commit()
+                db_session.add(csrf_user_session)
+                db_session.commit()
 
                 # create session for the user
                 user_session = WebAppUserSession(user.email, 60)
-                db.session.add(user_session)
-                db.session.commit()
+                db_session.add(user_session)
+                db_session.commit()
 
                 responseObject = {
                     "status": "success",
@@ -103,15 +103,15 @@ class LoginAPI(MethodView):
                         WebAppUserCSRFSession.get_active_user_csrf_session(email)
                     )
                     user_csrf_session.csrf_token_disabled = True
-                    db.session.commit()
+                    db_session.commit()
                     user_csrf_session = WebAppUserCSRFSession(email, 15)
-                    db.session.add(user_csrf_session)
-                    db.session.commit()
+                    db_session.add(user_csrf_session)
+                    db_session.commit()
 
                 # create session for the user
                 user_session = WebAppUserSession(user.email, 15)
-                db.session.add(user_session)
-                db.session.commit()
+                db_session.add(user_session)
+                db_session.commit()
 
                 # json response
                 responseObject = {
@@ -196,7 +196,7 @@ class LogoutAPI(MethodView):
                 try:
                     # disable session token
                     user_session.session_token_disabled = True
-                    db.session.commit()
+                    db_session.commit()
                     responseObject = {
                         "status": "success",
                         "message": "Successfully logged out.",

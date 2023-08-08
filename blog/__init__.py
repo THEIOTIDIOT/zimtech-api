@@ -3,13 +3,16 @@ import logging.config
 import yaml
 from pathlib import Path
 from flask import Flask
-# from flask_script import Manager
 from flask_cors import CORS
-# from flask_migrate import Migrate
-from api.views import base_blueprint
-from api.auth.views import auth_blueprint
+from blog.views import base_blueprint
+from blog.auth.views import auth_blueprint
+from blog.database import db_session
+app = Flask(__name__)
+# from flask_sqlalchemy import SQLAlchemy
+# db = SQLAlchemy()
 
 PROJECTROOT = Path(__name__).parent.resolve()
+
 
 class MyLogger(logging.Logger):
     def __init__(self, name: str) -> None:
@@ -38,11 +41,12 @@ def config_logger_options():
 
 config_logger_options()
 
+
 def create_app():
     # Initialize variables
     app = Flask(__name__)
     # app.config.from_object("server.config.DevelopmentConfig")
-    app.config.from_object("api.config.DevelopmentConfig")
+    app.config.from_object("blog.config.DevelopmentConfig")
 
 
     # Extensions
@@ -59,11 +63,15 @@ def create_app():
 
     app.config['CORS_HEADERS'] = 'Content-Type'
 
-    from api.models import db, bcrypt
+    from blog.models import bcrypt
     bcrypt.init_app(app)
     # manager = Manager(app)
-    db.init_app(app)
+    # db.init_app(app)
     # migrate = Migrate(app, db)
     app.register_blueprint(base_blueprint)
     app.register_blueprint(auth_blueprint)
     return app
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()

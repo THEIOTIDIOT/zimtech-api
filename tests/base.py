@@ -1,7 +1,7 @@
 from flask_testing import TestCase
-from api import create_app
+from blog import create_app
 from flask import Flask
-from api.models import db
+from blog.database import db_session, init_db, Base, engine, metadata
 
 app = create_app()
 
@@ -9,14 +9,13 @@ class BaseTestCase(TestCase):
     """ Base Tests """
 
     def create_app(self) -> Flask:
-        app.config.from_object('api.config.TestingConfig')
+        app.config.from_object('blog.config.TestingConfig')
         app.testing = True
         return app
 
     def setUp(self):
-        db.create_all()
-        db.session.commit()
+        init_db()
 
     def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+        db_session.remove()
+        Base.metadata.drop_all(engine)
