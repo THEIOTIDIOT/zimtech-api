@@ -13,10 +13,10 @@ class WebAppUserWhiteList(db.Model):
     __tablename__ = "WEB_APP_USER_WHITE_LIST"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    username = sa.Column(sa.String(255), unique=True, nullable=False)
+    email = sa.Column(sa.String(255), unique=True, nullable=False)
 
-    def __init__(self, username):
-        self.username = username
+    def __init__(self, email):
+        self.email = email
 
 
 class WebAppUser(db.Model):
@@ -33,6 +33,10 @@ class WebAppUser(db.Model):
     verified = sa.Column(sa.Boolean, nullable=False, default=False)
 
     def __init__(self, username, email, password, admin=False):
+        u = sa.select(WebAppUserWhiteList).filter_by(email=email)
+        if not u:
+            raise Exception("Email not allowed.")
+
         self.username = username
         self.email = email
         self.password = bcrypt.generate_password_hash(

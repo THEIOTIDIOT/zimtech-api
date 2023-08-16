@@ -69,11 +69,12 @@ class RegisterApi(MethodView):
                 }
                 return jsonify(responseObject), 401
         else:
+            self.logger.error("Attempt was made to create a user with existing email.")
             responseObject = {
                 "status": "fail",
-                "message": "User already exists. Please Log in.",
+                "message": f"Some error occurred. Please try again. {e}",
             }
-            return jsonify(responseObject), 202
+            return jsonify(responseObject), 401
 
 
 class LoginApi(MethodView):

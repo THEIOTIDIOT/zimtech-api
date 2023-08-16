@@ -32,6 +32,14 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(response.content_type == "application/json")
             self.assertEqual(response.status_code, 201)
 
+    def test_non_whitelist_registration(self):
+        """Test for non white list attempted user registration"""
+        with self.client:
+            email = "intruder@gmail.com"
+            response = register_user(self, email, "123456", "intruder")
+            self.assertTrue(response.content_type == "application/json")
+            self.assertEqual(response.status_code, 401)
+
     def test_registered_user_login(self):
         """Test for login of registered-user login"""
         with self.client:

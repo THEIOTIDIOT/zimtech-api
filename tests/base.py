@@ -1,5 +1,6 @@
 from flask_testing import TestCase
 from zimtechapi import create_app, db
+from zimtechapi.models import WebAppUserWhiteList
 
 class BaseTestCase(TestCase):
     """Base Tests """
@@ -11,6 +12,9 @@ class BaseTestCase(TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
+        u = WebAppUserWhiteList("ben@gmail.com")
+        db.session.add(u)
+        db.session.commit()
 
     def tearDown(self):
         db.session.remove()
