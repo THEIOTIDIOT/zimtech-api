@@ -1,7 +1,7 @@
 [project]
-name = "blog"
+name = "zimtechapi"
 version = "0.1.0"
-description = "This is an example blog site created for educational purposes"
+description = "Zimmer Technologies, LLC. API"
 dependencies = [
     "flask",
 ]

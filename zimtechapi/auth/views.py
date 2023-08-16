@@ -1,21 +1,23 @@
-from flask import current_app, Blueprint, request, make_response, jsonify
+from flask import current_app, Blueprint, request, make_response, jsonify, session
 from flask.views import MethodView
-# from api import bcrypt, db, app
-from blog.models import (
+from zimtechapi import db
+
+# from zimtechapi import bcrypt, db, app
+from zimtechapi.models import (
     WebAppUser,
     WebAppUserSession,
     WebAppUserCSRFSession,
-    bcrypt
+    bcrypt,
 )
 import logging
-from blog.database import db_session
-
 auth_blueprint = Blueprint("auth", __name__)
 
-class RegisterAPI(MethodView):
+
+class RegisterApi(MethodView):
     """
     User Registration Resource
     """
+
     def __init__(self):
         self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
@@ -33,18 +35,18 @@ class RegisterAPI(MethodView):
                 )
 
                 # insert the user
-                db_session.add(user)
-                db_session.commit()
+                db.session.add(user)
+                db.session.commit()
 
                 # create csrf token session for the user
                 csrf_user_session = WebAppUserCSRFSession(user.email, 15)
-                db_session.add(csrf_user_session)
-                db_session.commit()
+                db.session.add(csrf_user_session)
+                db.session.commit()
 
                 # create session for the user
                 user_session = WebAppUserSession(user.email, 60)
-                db_session.add(user_session)
-                db_session.commit()
+                db.session.add(user_session)
+                db.session.commit()
 
                 responseObject = {
                     "status": "success",
@@ -53,9 +55,7 @@ class RegisterAPI(MethodView):
                 }
                 response = jsonify(responseObject)
                 response.set_cookie(
-                    "user_session", 
-                    value=user_session.session_token, 
-                    httponly=True
+                    "user_session", value=user_session.session_token, httponly=True
                 )
                 self.logger.debug(user_session.session_token)
                 self.logger.debug(response.get_json())
@@ -76,10 +76,11 @@ class RegisterAPI(MethodView):
             return jsonify(responseObject), 202
 
 
-class LoginAPI(MethodView):
+class LoginApi(MethodView):
     """
     User Login Resource
     """
+
     def __init__(self):
         self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
@@ -103,15 +104,15 @@ class LoginAPI(MethodView):
                         WebAppUserCSRFSession.get_active_user_csrf_session(email)
                     )
                     user_csrf_session.csrf_token_disabled = True
-                    db_session.commit()
+                    db.session.commit()
                     user_csrf_session = WebAppUserCSRFSession(email, 15)
-                    db_session.add(user_csrf_session)
-                    db_session.commit()
+                    db.session.add(user_csrf_session)
+                    db.session.commit()
 
                 # create session for the user
                 user_session = WebAppUserSession(user.email, 15)
-                db_session.add(user_session)
-                db_session.commit()
+                db.session.add(user_session)
+                db.session.commit()
 
                 # json response
                 responseObject = {
@@ -124,12 +125,12 @@ class LoginAPI(MethodView):
                 }
                 response = jsonify(responseObject)
                 response.set_cookie(
-                    key="user_session", 
+                    key="user_session",
                     value=user_session.session_token,
                     httponly=True,
                     # secure=True,
                     # domain="b.u.localhost"
-                    samesite="Lax"
+                    samesite="Lax",
                 )
                 self.logger.debug(response.get_json())
                 return response, 200
@@ -142,7 +143,7 @@ class LoginAPI(MethodView):
             return jsonify(responseObject), 500
 
 
-class UserAPI(MethodView):
+class UserApi(MethodView):
     """
     User Resource
     """
@@ -153,7 +154,7 @@ class UserAPI(MethodView):
     def get(self):
         # get the auth token
         auth_token = request.cookies.get("user_session")
-        self.logger.debug(f"session token is : {auth_token}")        
+        self.logger.debug(f"session token is : {auth_token}")
         if auth_token:
             user = WebAppUserSession.get_user(auth_token)
             if user != None:
@@ -180,10 +181,11 @@ class UserAPI(MethodView):
             return jsonify(response), 401
 
 
-class LogoutAPI(MethodView):
+class LogoutApi(MethodView):
     """
     Logout Resource
     """
+
     def __init__(self):
         self.logger = logging.getLogger(".".join([__name__, self.__class__.__name__]))
 
@@ -196,7 +198,7 @@ class LogoutAPI(MethodView):
                 try:
                     # disable session token
                     user_session.session_token_disabled = True
-                    db_session.commit()
+                    db.session.commit()
                     responseObject = {
                         "status": "success",
                         "message": "Successfully logged out.",
@@ -217,14 +219,14 @@ class LogoutAPI(MethodView):
             return jsonify(responseObject), 403
 
 
-# define the API resources
+# define the zimtechapi resources
 
-registration_view = RegisterAPI.as_view("register_api")
-login_view = LoginAPI.as_view("login_api")
-user_view = UserAPI.as_view("user_api")
-logout_view = LogoutAPI.as_view("logout_api")
+registration_view = RegisterApi.as_view("register_zimtechapi")
+login_view = LoginApi.as_view("login_zimtechapi")
+user_view = UserApi.as_view("user_zimtechapi")
+logout_view = LogoutApi.as_view("logout_zimtechapi")
 
-# add Rules for API Endpoints
+# add Rules for zimtechapi Endpoints
 auth_blueprint.add_url_rule(
     "/auth/register", view_func=registration_view, methods=["POST"]
 )

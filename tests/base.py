@@ -1,21 +1,18 @@
 from flask_testing import TestCase
-from blog import create_app
-from flask import Flask
-from blog.database import db_session, init_db, Base, engine, metadata
-
-app = create_app()
+from zimtechapi import create_app, db
 
 class BaseTestCase(TestCase):
-    """ Base Tests """
-
-    def create_app(self) -> Flask:
-        app.config.from_object('blog.config.TestingConfig')
-        app.testing = True
-        return app
+    """Base Tests """
+    def create_app(self):
+        self.app = create_app("zimtechapi.config.TestingConfig")
+        return self.app
 
     def setUp(self):
-        init_db()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
 
     def tearDown(self):
-        db_session.remove()
-        Base.metadata.drop_all(engine)
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()

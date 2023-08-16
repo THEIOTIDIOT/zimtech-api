@@ -4,15 +4,10 @@ import yaml
 from pathlib import Path
 from flask import Flask
 from flask_cors import CORS
-from blog.views import base_blueprint
-from blog.auth.views import auth_blueprint
-from blog.database import db_session
-app = Flask(__name__)
-# from flask_sqlalchemy import SQLAlchemy
-# db = SQLAlchemy()
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 PROJECTROOT = Path(__name__).parent.resolve()
-
 
 class MyLogger(logging.Logger):
     def __init__(self, name: str) -> None:
@@ -41,37 +36,34 @@ def config_logger_options():
 
 config_logger_options()
 
+db = SQLAlchemy()
+migrate = Migrate()
 
-def create_app():
+def create_app(
+    config: str,
+    origins: list = []
+):
     # Initialize variables
     app = Flask(__name__)
-    # app.config.from_object("server.config.DevelopmentConfig")
-    app.config.from_object("blog.config.DevelopmentConfig")
-
+    app.config.from_object(config)
+    db.init_app(app)
+    migrate.init_app(app, db)
+    from .models import bcrypt
+    bcrypt.init_app(app)
 
     # Extensions
     CORS(
         app,
         # origins=["http://127.0.0.1:5173","http://127.0.0.1:5000", "http://127.0.0.1:5555", "http://127.0.0.1:8080"],
-        resource={
-            r"/*":{
-                "origins":["http://127.0.0.1:5173"]
-            }
-        },
+        resource={r"/*": {"origins": origins}},
         supports_credentials=True,
     )
+    app.config["CORS_HEADERS"] = "Content-Type"
 
-    app.config['CORS_HEADERS'] = 'Content-Type'
 
-    from blog.models import bcrypt
-    bcrypt.init_app(app)
-    # manager = Manager(app)
-    # db.init_app(app)
-    # migrate = Migrate(app, db)
+    from .views import base_blueprint
+    from .auth.views import auth_blueprint
     app.register_blueprint(base_blueprint)
     app.register_blueprint(auth_blueprint)
-    return app
 
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    db_session.remove()
+    return app

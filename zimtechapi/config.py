@@ -1,4 +1,3 @@
-import os
 import configparser
 import logging
 
@@ -13,7 +12,6 @@ server_host = parser["postgres"]["server_host"]
 db_name = parser["postgres"]["db_name"]
 secret_key = parser["flask"]["secret_key"]
 postgres_connection = f"postgresql://{username}:{password}@{server_host}/{db_name}"
-
 
 class BaseConfig:
     """Base configuration."""

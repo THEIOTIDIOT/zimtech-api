@@ -1,24 +1,25 @@
 from datetime import datetime, timedelta
 import sqlalchemy as sa
 from flask import current_app
-from blog.utils.utils import AESCipher
+from zimtechapi.utils.crypt import AESCipher
 from flask_bcrypt import Bcrypt
-from blog.database import Base, db_session
+from . import db
 
 bcrypt = Bcrypt()
 
-class WebAppUserWhiteList(Base):
+class WebAppUserWhiteList(db.Model):
     """Allowable usernames ref table"""
 
     __tablename__ = "WEB_APP_USER_WHITE_LIST"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     username = sa.Column(sa.String(255), unique=True, nullable=False)
-    
+
     def __init__(self, username):
         self.username = username
 
-class WebAppUser(Base):
+
+class WebAppUser(db.Model):
     """User Model for storing user related details"""
 
     __tablename__ = "WEB_APP_USER"
@@ -42,7 +43,7 @@ class WebAppUser(Base):
         self.verified = False
 
 
-class WebAppUserSession(Base):
+class WebAppUserSession(db.Model):
     """Web App User Session Model for storing user sessions"""
 
     __tablename__ = "WEB_APP_USER_SESSION"
@@ -55,7 +56,7 @@ class WebAppUserSession(Base):
     session_token_disabled = sa.Column(sa.Boolean, nullable=False)
 
     def __init__(self, email, session_length_mins):
-        user = db_session.execute(
+        user = db.session.execute(
             sa.select(WebAppUser).filter_by(email=email)
         ).scalar_one()
         self.user_id = user.id
@@ -81,9 +82,9 @@ class WebAppUserSession(Base):
             return WebAppUser.query.where(WebAppUser.id == user_session.user_id).first()
         else:
             return None
-        
+
     @staticmethod
-    def get_active_user_session(session_token: str) -> 'WebAppUserSession':
+    def get_active_user_session(session_token: str) -> "WebAppUserSession":
         user_session = WebAppUserSession.query.where(
             WebAppUserSession.session_token == session_token
         ).first()
@@ -96,7 +97,7 @@ class WebAppUserSession(Base):
             return None
 
 
-class WebAppUserCSRFSession(Base):
+class WebAppUserCSRFSession(db.Model):
     """Web App User CSRF Session Model for storing user csrf token sessions"""
 
     __tablename__ = "WEB_APP_USER_CSRF_SESSION"
@@ -109,7 +110,7 @@ class WebAppUserCSRFSession(Base):
     csrf_token_disabled = sa.Column(sa.Boolean, nullable=False)
 
     def __init__(self, email, session_length_mins):
-        user = db_session.execute(
+        user = db.session.execute(
             sa.select(WebAppUser).filter_by(email=email)
         ).scalar_one()
         self.user_id = user.id

@@ -1,6 +1,6 @@
 import unittest
 from base import BaseTestCase
-from blog.models import (
+from zimtechapi.models import (
     WebAppUserCSRFSession,
 )
 import json
