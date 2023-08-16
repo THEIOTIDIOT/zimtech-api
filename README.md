@@ -8,3 +8,7 @@
 - to migrate db - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db migrate
 - to upgrade db - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db upgrade
 - to downgrade db - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db downgrade
+
+## Creating docker image
+
+- docker build -t zimtechapi:latest .

@@ -1,15 +1,22 @@
 FROM python:3.11
 
-WORKDIR /usr/src/app
+RUN useradd api
+
+WORKDIR /home/api
 
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-COPY pyproject.toml ./
-COPY zimtechapi ./
-COPY config.ini ./
-COPY logger_config.yml ./
+RUN python -m venv venv
+RUN venv/bin/pip install -r requirements.txt
+RUN venv/bin/pip install gunicorn
+
+COPY pyproject.toml config.ini logger_config.yml boot.sh ./
+COPY zimtechapi zimtechapi
+COPY migrations migrations
+RUN chmod +x boot.sh
+
+
 RUN pip install -e ./zimtechapi
+RUN chown -R zimtechapi:zimtechapi ./
 
-COPY . .
-
-CMD [ "python -m zimtechapi.database.init_db()", "gunicorn -w 4 'zimtechapi.create_app()'" ]
+USER api
+ENTRYPOINT ["./boot.sh"]

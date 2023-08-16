@@ -18,7 +18,7 @@ def register_user(self: BaseTestCase, email, password, username):
 class TestAuthBlueprint(BaseTestCase):
     def test_base(self):
         self.assertTrue(True)
-        
+
     def test_registration(self):
         """Test for user registration"""
         with self.client:
