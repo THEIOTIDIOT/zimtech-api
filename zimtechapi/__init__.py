@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 PROJECTROOT = Path(__name__).parent.resolve()
 
@@ -55,6 +56,11 @@ def create_app(
     migrate.init_app(app, db)
     from .models import bcrypt
     bcrypt.init_app(app)
+
+    # setup proxy config
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
 
     # Extensions
     CORS(
