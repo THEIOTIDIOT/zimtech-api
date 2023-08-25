@@ -33,8 +33,11 @@ class WebAppUser(db.Model):
     verified = sa.Column(sa.Boolean, nullable=False, default=False)
 
     def __init__(self, username, email, password, admin=False):
-        u = sa.select(WebAppUserWhiteList).filter_by(email=email)
-        if not u:
+        u = db.session.execute(
+            sa.select(WebAppUserWhiteList).filter_by(email=email)
+        ).scalar_one()
+
+        if not u.id:
             raise Exception("Email not allowed.")
 
         self.username = username

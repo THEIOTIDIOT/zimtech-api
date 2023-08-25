@@ -6,6 +6,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy_utils import database_exists, create_database
 
 PROJECTROOT = Path(__name__).parent.resolve()
 
@@ -28,7 +29,6 @@ logging.setLoggerClass(MyLogger)
 
 def config_logger_options():
     # Parse YAML config as dict and configure logging system
-    print(PROJECTROOT)
     with open(Path(PROJECTROOT, "logger_config.yml").resolve(), "r") as f:
         config = dict(yaml.safe_load(f))
         logging.config.dictConfig(config)
@@ -46,6 +46,11 @@ def create_app(
     # Initialize variables
     app = Flask(__name__)
     app.config.from_object(config)
+
+    # Check if database exists, if not create it
+    if not database_exists(app.config.get("SQLALCHEMY_DATABASE_URI")):
+        create_database(app.config.get("SQLALCHEMY_DATABASE_URI"))
+
     db.init_app(app)
     migrate.init_app(app, db)
     from .models import bcrypt

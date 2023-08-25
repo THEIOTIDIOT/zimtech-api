@@ -46,3 +46,4 @@ Flask-Testing==0.8.1
 psycopg2==2.9.6
 gunicorn==20.1.0
 flit==3.9.0
+sqlalchemy_utils==0.41.1

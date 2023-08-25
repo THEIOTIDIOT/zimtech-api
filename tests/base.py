@@ -11,6 +11,7 @@ class BaseTestCase(TestCase):
     def setUp(self):
         self.app_context = self.app.app_context()
         self.app_context.push()
+        db.drop_all()
         db.create_all()
         u = WebAppUserWhiteList("ben@gmail.com")
         db.session.add(u)
