@@ -15,7 +15,7 @@ RUN chmod +x boot.sh
 
 
 RUN pip install -e ./
-RUN chown -R zimtechapi:zimtechapi ./
+RUN chown -R api ./
 
 USER api
 EXPOSE 5000
