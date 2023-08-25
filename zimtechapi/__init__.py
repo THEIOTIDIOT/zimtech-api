@@ -10,31 +10,31 @@ from sqlalchemy_utils import database_exists, create_database
 
 PROJECTROOT = Path(__name__).parent.resolve()
 
-class MyLogger(logging.Logger):
-    def __init__(self, name: str) -> None:
-        super().__init__(name=name)
-        # Setting some package specific customizations
-        # (Just aligns the logger for better legibility)
-        logging.addLevelName(logging.CRITICAL, "CRITICAL".ljust(8))
-        logging.addLevelName(logging.ERROR, "ERROR".ljust(8))
-        logging.addLevelName(logging.WARNING, "WARNING".ljust(8))
-        logging.addLevelName(logging.INFO, "INFO".ljust(8))
-        logging.addLevelName(logging.DEBUG, "DEBUG".ljust(8))
-        logging.addLevelName(logging.NOTSET, "NOTSET".ljust(8))
+# class MyLogger(logging.Logger):
+#     def __init__(self, name: str) -> None:
+#         super().__init__(name=name)
+#         # Setting some package specific customizations
+#         # (Just aligns the logger for better legibility)
+#         logging.addLevelName(logging.CRITICAL, "CRITICAL".ljust(8))
+#         logging.addLevelName(logging.ERROR, "ERROR".ljust(8))
+#         logging.addLevelName(logging.WARNING, "WARNING".ljust(8))
+#         logging.addLevelName(logging.INFO, "INFO".ljust(8))
+#         logging.addLevelName(logging.DEBUG, "DEBUG".ljust(8))
+#         logging.addLevelName(logging.NOTSET, "NOTSET".ljust(8))
 
 
-# Setting the custom logger class to the default
-logging.setLoggerClass(MyLogger)
+# # Setting the custom logger class to the default
+# logging.setLoggerClass(MyLogger)
 
 
-def config_logger_options():
-    # Parse YAML config as dict and configure logging system
-    with open(Path(PROJECTROOT, "logger_config.yml").resolve(), "r") as f:
-        config = dict(yaml.safe_load(f))
-        logging.config.dictConfig(config)
+# def config_logger_options():
+#     # Parse YAML config as dict and configure logging system
+#     with open(Path(PROJECTROOT, "logger_config.yml").resolve(), "r") as f:
+#         config = dict(yaml.safe_load(f))
+#         logging.config.dictConfig(config)
 
 
-config_logger_options()
+# config_logger_options()
 
 db = SQLAlchemy()
 migrate = Migrate()

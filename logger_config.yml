@@ -13,12 +13,12 @@ handlers:
   file:
     backupCount: 1
     class: logging.handlers.RotatingFileHandler
-    filename: server.log
+    filename: zimtechapi.log
     formatter: debug
     maxBytes: 52428800
     mode: a
 loggers:
-  server:
+  zimtechapi:
     handlers:
     - console
     - file
