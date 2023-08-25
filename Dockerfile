@@ -19,4 +19,5 @@ RUN pip install -e ./zimtechapi
 RUN chown -R zimtechapi:zimtechapi ./
 
 USER api
+EXPOSE 5000
 ENTRYPOINT ["./boot.sh"]
