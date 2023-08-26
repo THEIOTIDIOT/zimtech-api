@@ -58,7 +58,8 @@ class RegisterApi(MethodView):
                     "user_session", 
                     value=user_session.session_token, 
                     httponly=True,
-                    domain='.benzimmer.us'
+                    domain='.benzimmer.us',
+                    samesite="Lax",
                 )
                 self.logger.debug(user_session.session_token)
                 self.logger.debug(response.get_json())
@@ -132,10 +133,10 @@ class LoginApi(MethodView):
                     key="user_session",
                     value=user_session.session_token,
                     httponly=True,
-                    domain='.benzimmer.us'
+                    domain='.benzimmer.us',
                     # secure=True,
                     # domain="b.u.localhost"
-                    # samesite="Lax",
+                    samesite="Lax",
                 )
                 self.logger.debug(response.get_json())
                 return response, 200
