@@ -69,7 +69,7 @@ def create_app(
         # origins=origins,
         supports_credentials=True,
     )
-    app.config["CORS_HEADERS"] = "Content-Type"
+    # app.config["CORS_HEADERS"] = "Content-Type"
 
 
     from .views import base_blueprint
