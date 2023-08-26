@@ -62,13 +62,14 @@ def create_app(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
 
-    # Extensions
-    CORS(
-        app,
-        resource={r"/*": {"origins": origins}},
-        supports_credentials=True,
-    )
-    app.config["CORS_HEADERS"] = "Content-Type"
+    # # Extensions
+    # CORS(
+    #     app,
+    #     # resource={r"/*": {"origins": origins}},
+    #     origins=origins,
+    #     supports_credentials=True,
+    # )
+    # app.config["CORS_HEADERS"] = "Content-Type"
 
 
     from .views import base_blueprint
