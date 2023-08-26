@@ -55,7 +55,11 @@ class RegisterApi(MethodView):
                 }
                 response = jsonify(responseObject)
                 response.set_cookie(
-                    "user_session", value=user_session.session_token, httponly=True
+                    "user_session", 
+                    value=user_session.session_token, 
+                    httponly=True,
+                    samesite="Strict"
+                    
                 )
                 self.logger.debug(user_session.session_token)
                 self.logger.debug(response.get_json())
@@ -129,6 +133,7 @@ class LoginApi(MethodView):
                     key="user_session",
                     value=user_session.session_token,
                     httponly=True,
+                    samesite="Strict"
                     # secure=True,
                     # domain="b.u.localhost"
                     # samesite="Lax",
