@@ -131,7 +131,7 @@ class LoginApi(MethodView):
                     httponly=True,
                     # secure=True,
                     # domain="b.u.localhost"
-                    samesite="Lax",
+                    # samesite="Lax",
                 )
                 self.logger.debug(response.get_json())
                 return response, 200
