@@ -54,6 +54,7 @@ class RegisterApi(MethodView):
                     "csrf_token": csrf_user_session.csrf_token,
                 }
                 response = jsonify(responseObject)
+                # doesn't work
                 response.set_cookie(
                     "user_session", 
                     value=user_session.session_token, 
@@ -62,13 +63,41 @@ class RegisterApi(MethodView):
                     samesite="None",
                     secure=True
                 )
+                # ?????
                 response.set_cookie(
                     "user_session", 
-                    value="testtoken", 
-                    httponly=True,
+                    value="testtoken",
                     domain='benzimmer.us',
-                    samesite="None",
-                    secure=True
+                )
+                # ?????
+                response.set_cookie(
+                    "user_session", 
+                    value="testtoken1",
+                    domain='.benzimmer.us',
+                )
+                # ?????
+                response.set_cookie(
+                    "user_session", 
+                    value="testtoken2",
+                    domain='www.benzimmer.us',
+                )
+                # ?????
+                response.set_cookie(
+                    "user_session", 
+                    value="testtoken3",
+                    httponly=True,
+                    domain='.benzimmer.us',
+                    max_age=600,
+                )
+                # ?????
+                response.set_cookie(
+                    "user_session", 
+                    value="testtoken4",
+                    httponly=True,
+                    domain='.benzimmer.us',
+                    max_age=600,
+                    secure=True,
+                    samesite=None,
                 )
                 self.logger.debug(user_session.session_token)
                 self.logger.debug(response.get_json())

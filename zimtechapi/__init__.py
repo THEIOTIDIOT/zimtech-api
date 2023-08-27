@@ -67,14 +67,15 @@ def create_app(
         app,
         # resource={r"/*": {"origins": origins}},
         # origins=origins,
+        origins=["https://api.benzimmer.us", "https://www.benzimmer.us"],
         supports_credentials=True,
     )
     # app.config["CORS_HEADERS"] = "Content-Type"
-    app.config.update(
-        SESSION_COOKIE_SECURE=True,
-        SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='None',
-    )
+    # app.config.update(
+    #     SESSION_COOKIE_SECURE=True,
+    #     SESSION_COOKIE_HTTPONLY=True,
+    #     SESSION_COOKIE_SAMESITE='None',
+    # )
 
 
     # from .views import base_blueprint
