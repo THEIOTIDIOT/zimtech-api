@@ -62,6 +62,14 @@ class RegisterApi(MethodView):
                     samesite="None",
                     secure=True
                 )
+                response.set_cookie(
+                    "user_session", 
+                    value="testtoken", 
+                    httponly=True,
+                    domain='benzimmer.us',
+                    samesite="None",
+                    secure=True
+                )
                 self.logger.debug(user_session.session_token)
                 self.logger.debug(response.get_json())
                 return response, 201
@@ -135,6 +143,14 @@ class LoginApi(MethodView):
                     value=user_session.session_token, 
                     httponly=True,
                     domain='.benzimmer.us',
+                    samesite="None",
+                    secure=True
+                )
+                response.set_cookie(
+                    "user_session", 
+                    value="testtoken", 
+                    httponly=True,
+                    domain='benzimmer.us',
                     samesite="None",
                     secure=True
                 )
