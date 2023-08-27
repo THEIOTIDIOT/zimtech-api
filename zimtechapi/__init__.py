@@ -63,13 +63,13 @@ def create_app(
     )
 
     # # Extensions
-    # CORS(
-    #     app,
-    #     # resource={r"/*": {"origins": origins}},
-    #     # origins=origins,
-    #     supports_credentials=True,
-    # )
-    # # app.config["CORS_HEADERS"] = "Content-Type"
+    CORS(
+        app,
+        # resource={r"/*": {"origins": origins}},
+        # origins=origins,
+        supports_credentials=True,
+    )
+    app.config["CORS_HEADERS"] = "Content-Type"
 
 
     # from .views import base_blueprint
