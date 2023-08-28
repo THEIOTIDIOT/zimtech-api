@@ -67,7 +67,7 @@ def create_app(
         app,
         # resource={r"/*": {"origins": origins}},
         # origins=origins,
-        origins=["https://api.benzimmer.us", "https://webapp.benzimmer.us"],
+        origins=["https://www.benzimmer.us", "https://webapp.benzimmer.us", "https://benzimmer.us"],
         supports_credentials=True,
     )
     # CORS(app, resources={r"/*": {"origins": "https://www.benzimmer.us",
