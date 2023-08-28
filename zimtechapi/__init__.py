@@ -63,19 +63,19 @@ def create_app(
     )
 
     # # Extensions
-    # CORS(
-    #     app,
-    #     # resource={r"/*": {"origins": origins}},
-    #     # origins=origins,
-    #     origins=["https://api.benzimmer.us", "https://www.benzimmer.us"],
-    #     supports_credentials=True,
-    # )
-    CORS(app, resources={r"/*": {"origins": "https://www.benzimmer.us",
-                                 "allow_headers": ["Origin", "Authorization", "X-Frame-Options", "X-Requested-With", "DNT", "User-Agent", "If-Modified-Since", "Cache-Control", "Range", "X-Real-IP", "HOST", "X-NginX-Proxy", "Content-Type", "If-Match"],
-                                 "expose_headers": ["ETag", "Content-Length", "Content-Range", "Access-Control-Allow-Origin"],
-                                 "max_age": "3600"}},
+    CORS(
+        app,
+        # resource={r"/*": {"origins": origins}},
+        # origins=origins,
+        origins=["https://api.benzimmer.us", "https://webapp.benzimmer.us"],
         supports_credentials=True,
     )
+    # CORS(app, resources={r"/*": {"origins": "https://www.benzimmer.us",
+    #                              "allow_headers": ["Origin", "Authorization", "X-Frame-Options", "X-Requested-With", "DNT", "User-Agent", "If-Modified-Since", "Cache-Control", "Range", "X-Real-IP", "HOST", "X-NginX-Proxy", "Content-Type", "If-Match"],
+    #                              "expose_headers": ["ETag", "Content-Length", "Content-Range", "Access-Control-Allow-Origin"],
+    #                              "max_age": "3600"}},
+    #     supports_credentials=True,
+    # )
 
     # app.config["CORS_HEADERS"] = "Content-Type"
     # app.config.update(
