@@ -54,19 +54,8 @@ class RegisterApi(MethodView):
                     "csrf_token": csrf_user_session.csrf_token,
                 }
                 response = jsonify(responseObject)
-                # Cha-ching
                 response.set_cookie(
                     "user_session", 
-                    value=user_session.session_token,
-                    httponly=True,
-                    domain='.benzimmer.us',
-                    max_age=600,
-                    secure=True,
-                    samesite=None,
-                )
-                # Cha-ching
-                response.set_cookie(
-                    "user_session1", 
                     value=user_session.session_token,
                     httponly=True,
                     domain='.benzimmer.us',
@@ -141,19 +130,8 @@ class LoginApi(MethodView):
                     "username": user.username,
                 }
                 response = jsonify(responseObject)
-                # Cha-ching
                 response.set_cookie(
                     "user_session", 
-                    value=user_session.session_token,
-                    httponly=True,
-                    domain='.benzimmer.us',
-                    max_age=600,
-                    secure=True,
-                    samesite=None,
-                )
-                # Cha-ching
-                response.set_cookie(
-                    "user_session1", 
                     value=user_session.session_token,
                     httponly=True,
                     domain='.benzimmer.us',
