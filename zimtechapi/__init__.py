@@ -42,7 +42,7 @@ migrate = Migrate()
 
 def create_app(
     config: str,
-    origins: list = []
+    origins: list = ["*"]
 ):
     # Initialize variables
     app = Flask(__name__)
@@ -62,28 +62,12 @@ def create_app(
         app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
     )
 
-    # # Extensions
+    # Extensions
     CORS(
         app,
-        # resource={r"/*": {"origins": origins}},
-        # origins=origins,
-        origins=["https://www.benzimmer.us", "https://webapp.benzimmer.us", "https://benzimmer.us"],
+        origins=origins,
         supports_credentials=True,
     )
-    # CORS(app, resources={r"/*": {"origins": "https://www.benzimmer.us",
-    #                              "allow_headers": ["Origin", "Authorization", "X-Frame-Options", "X-Requested-With", "DNT", "User-Agent", "If-Modified-Since", "Cache-Control", "Range", "X-Real-IP", "HOST", "X-NginX-Proxy", "Content-Type", "If-Match"],
-    #                              "expose_headers": ["ETag", "Content-Length", "Content-Range", "Access-Control-Allow-Origin"],
-    #                              "max_age": "3600"}},
-    #     supports_credentials=True,
-    # )
-
-    # app.config["CORS_HEADERS"] = "Content-Type"
-    # app.config.update(
-    #     SESSION_COOKIE_SECURE=True,
-    #     SESSION_COOKIE_HTTPONLY=True,
-    #     SESSION_COOKIE_SAMESITE='None',
-    # )
-
 
     # from .views import base_blueprint
     from .auth.views import auth_blueprint
