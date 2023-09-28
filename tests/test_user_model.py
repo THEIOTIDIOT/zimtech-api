@@ -1,6 +1,6 @@
 import unittest
 from flask_testing import TestCase
-from zimtechapi.models import WebAppUser
+from zimtechapi.models import User
 from base import BaseTestCase
 
 

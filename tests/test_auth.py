@@ -85,10 +85,13 @@ class TestAuthBlueprint(BaseTestCase):
             # user registration
             email = "ben@gmail.com"
             register_user(self, email, "123456", "ben")
-            cookie = self.client.get_cookie("user_session")
+            for cookie in self.client.cookie_jar:
+                if cookie.key == "user_session":
+                    my_cookie = cookie.value
+            
             response = self.client.get("/auth/status")
             data = json.loads(response.data)
-            self.assertTrue(cookie is not None)
+            self.assertTrue(my_cookie is not None)
             self.assertTrue(data["status"] == "success")
             self.assertTrue(data["data"] is not None)
             self.assertTrue(data["data"]["email"] == "ben@gmail.com")
@@ -107,9 +110,6 @@ class TestAuthBlueprint(BaseTestCase):
             self.assertTrue(data["status"] == "success")
             self.assertTrue(data["message"] == "Successfully logged out.")
             self.assertEqual(response.status_code, 200)
-
-    # def test_create_
-
 
 if __name__ == "__main__":
     unittest.main()

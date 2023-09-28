@@ -1,44 +1,18 @@
-import logging
-import logging.config
-import yaml
-from pathlib import Path
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_security import Security
+from flask_wtf import CSRFProtect
+from .models import db, user_datastore
+from flask_mailman import Mail
 
-PROJECTROOT = Path(__name__).parent.resolve()
-
-# class MyLogger(logging.Logger):
-#     def __init__(self, name: str) -> None:
-#         super().__init__(name=name)
-#         # Setting some package specific customizations
-#         # (Just aligns the logger for better legibility)
-#         logging.addLevelName(logging.CRITICAL, "CRITICAL".ljust(8))
-#         logging.addLevelName(logging.ERROR, "ERROR".ljust(8))
-#         logging.addLevelName(logging.WARNING, "WARNING".ljust(8))
-#         logging.addLevelName(logging.INFO, "INFO".ljust(8))
-#         logging.addLevelName(logging.DEBUG, "DEBUG".ljust(8))
-#         logging.addLevelName(logging.NOTSET, "NOTSET".ljust(8))
-
-
-# # Setting the custom logger class to the default
-# logging.setLoggerClass(MyLogger)
-
-
-# def config_logger_options():
-#     # Parse YAML config as dict and configure logging system
-#     with open(Path(PROJECTROOT, "logger_config.yml").resolve(), "r") as f:
-#         config = dict(yaml.safe_load(f))
-#         logging.config.dictConfig(config)
-
-
-# config_logger_options()
-
-db = SQLAlchemy()
 migrate = Migrate()
+security = Security()
+mail = Mail()
 
 def create_app(
     config: str,
@@ -48,14 +22,32 @@ def create_app(
     app = Flask(__name__)
     app.config.from_object(config)
 
+    # Turn on all features (except passwordless since that removes normal login)
+    for opt in [
+        "changeable",
+        "recoverable",
+        "registerable",
+        "trackable",
+        "confirmable",
+        "two_factor",
+        "unified_signin",
+    ]:
+        app.config["SECURITY_" + opt.upper()] = True
+
+    if os.environ.get("SETTINGS"):
+        # Load settings from a file pointed to by SETTINGS
+        app.config.from_envvar("SETTINGS")
+
     # Check if database exists, if not create it
     if not database_exists(app.config.get("SQLALCHEMY_DATABASE_URI")):
         create_database(app.config.get("SQLALCHEMY_DATABASE_URI"))
 
+    # Extension inits
     db.init_app(app)
     migrate.init_app(app, db)
-    from .models import bcrypt
-    bcrypt.init_app(app)
+    CSRFProtect(app)
+    security.init_app(app, user_datastore)
+    mail.init_app(app)
 
     # setup proxy config
     app.wsgi_app = ProxyFix(
@@ -70,8 +62,9 @@ def create_app(
     )
 
     # from .views import base_blueprint
-    from .auth.views import auth_blueprint
+    from .api import api
+
     # app.register_blueprint(base_blueprint)
-    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(api, url_prefix="/api")
 
     return app

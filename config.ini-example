@@ -1,5 +1,9 @@
 [flask]
 secret_key =
+password_salt = 
+totp_secret =
+smtp_email =
+smtp_password =
 
 [postgres]
 server_host =
