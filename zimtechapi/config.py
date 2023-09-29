@@ -82,9 +82,11 @@ class BaseConfig:
     #Mail Server
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
+    MAIL_USE_TLS = True
     MAIL_USERNAME = smtp_email
     MAIL_PASSWORD = smtp_password
-    MAIL_USE_TLS = True
+    MAIL_DEFAULT_SENDER = smtp_email
+    MAIL_BACKEND = 'smtp'
 
 class DevelopmentConfig(BaseConfig):
     """Development configuration."""
