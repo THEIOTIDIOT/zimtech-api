@@ -1,7 +1,5 @@
 import unittest
 from base import BaseTestCase
-import json
-from flask_mailman import EmailMessage
 
 class TestAuthBlueprint(BaseTestCase):
     def test_base(self):
@@ -15,6 +13,8 @@ class TestAuthBlueprint(BaseTestCase):
             "benzimmer.is@gmail.com",
             ["benzimmer.is@gmail.com"]
         )
+
+    
 
 if __name__ == "__main__":
     unittest.main()

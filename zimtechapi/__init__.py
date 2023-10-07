@@ -34,10 +34,6 @@ def create_app(
     ]:
         app.config["SECURITY_" + opt.upper()] = True
 
-    if os.environ.get("SETTINGS"):
-        # Load settings from a file pointed to by SETTINGS
-        app.config.from_envvar("SETTINGS")
-
     # Check if database exists, if not create it
     if not database_exists(app.config.get("SQLALCHEMY_DATABASE_URI")):
         create_database(app.config.get("SQLALCHEMY_DATABASE_URI"))

@@ -12,3 +12,7 @@
 ## Creating docker image
 
 - docker build -t zimtechapi:latest .
+
+## Run it locally
+
+- flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" run
