@@ -38,10 +38,13 @@ class Blog(db.Model):
         "User", back_populates="blogs", cascade_backrefs=False
     )
     created_datetime = Column(DateTime(), nullable=False)
-    updated_datetime = Column(DateTime(), nullable=True)
+    updated_datetime = Column(DateTime(), nullable=False)
     title = Column(String(255))
     body = Column(UnicodeText)
     published = Column(Boolean, nullable=False)
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 # Setup Flask-Security

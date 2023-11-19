@@ -94,7 +94,8 @@ def create_blog(username):
 @api.route("/<username>/blogs", methods=["GET"])
 def list_my_blogs(username):
     user: User = User.query.where(User.username == username).first()
-    blogs = [blog for blog in user.blogs if blog.published == True]
+    blogs = [blog.as_dict() for blog in user.blogs if blog.published == True]
+    
     if not blogs:
         abort(404)
     return blogs
