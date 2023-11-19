@@ -7,21 +7,20 @@ from sqlalchemy_utils import database_exists, create_database
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_security import Security
 from flask_wtf import CSRFProtect
-from .models import db, user_datastore
+from .models import db, user_datastore, Blog
 from flask_mailman import Mail
 
-migrate = Migrate()
-security = Security()
-mail = Mail()
+migrate: Migrate = Migrate()
+security: Security = Security()
+mail: Mail = Mail()
 
 def create_app(
     config: str,
     origins: list = ["*"]
-):
+) -> Flask:
     # Initialize variables
     app = Flask(__name__)
     app.config.from_object(config)
-
     # Turn on all features (except passwordless since that removes normal login)
     for opt in [
         "changeable",
@@ -42,7 +41,8 @@ def create_app(
     db.init_app(app)
     migrate.init_app(app, db)
     CSRFProtect(app)
-    security.init_app(app, user_datastore)
+    # security.init_app(app, user_datastore)
+    app.security = Security(app, user_datastore)
     mail.init_app(app)
 
     # setup proxy config

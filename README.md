@@ -4,10 +4,10 @@
 
 ## Cmds for migrating changes to data model
 
-- to initialize db run - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db init
-- to migrate db - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db migrate
-- to upgrade db - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db upgrade
-- to downgrade db - flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" db downgrade
+- to initialize db run - flask --app "zimtechapi:create_app('zimtechapi.config.DevelopmentConfig')" db init
+- to migrate db - flask --app "zimtechapi:create_app('zimtechapi.config.DevelopmentConfig')" db migrate
+- to upgrade db - flask --app "zimtechapi:create_app('zimtechapi.config.DevelopmentConfig')" db upgrade
+- to downgrade db - flask --app "zimtechapi:create_app('zimtechapi.config.DevelopmentConfig')" db downgrade
 
 ## Creating docker image
 
@@ -15,4 +15,4 @@
 
 ## Run it locally
 
-- flask --app "zimtechapi:create_app('zimtechapi.config.TestingConfig')" run
+- flask --app "zimtechapi:create_app('zimtechapi.config.DevelopmentConfig')" run

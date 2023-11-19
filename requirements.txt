@@ -56,3 +56,4 @@ pycparser==2.21
 cryptography==41.0.4
 qrcode==7.4.2
 phonenumbers==8.13.21
+pytest==7.4.2
